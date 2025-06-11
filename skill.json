@@ -1,0 +1,51 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "ja-JP": {
+          "summary": "JPsonicストリーミングサーバーに接続して音楽を再生するスキル",
+          "examplePhrases": [
+            "アレクサ、JPソニックを開いて",
+            "アレクサ、JPソニックでランダムアルバムを再生して",
+            "アレクサ、JPソニックで[アーティスト名]を検索して"
+          ],
+          "keywords": [
+            "音楽",
+            "ストリーミング",
+            "JPsonic",
+            "サブソニック"
+          ],
+          "name": "JPソニック",
+          "description": "このスキルは、同じネットワーク上のJPsonicサーバーに接続し、音楽ライブラリを検索したり再生したりすることができます。"
+        }
+      },
+      "isAvailableWorldwide": false,
+      "testingInstructions": "JPsonicサーバーの設定を適切に行ってください。",
+      "category": "MUSIC_AND_AUDIO",
+      "distributionCountries": [
+        "JP"
+      ]
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "arn:aws:lambda:us-east-1:XXXXXXXXXXXX:function:jpsonic-alexa-skill"
+        }
+      }
+    },
+    "manifestVersion": "1.0",
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "locales": {
+        "ja-JP": {
+          "privacyPolicyUrl": "https://example.com/privacy-policy",
+          "termsOfUseUrl": "https://example.com/terms-of-use"
+        }
+      },
+      "isExportCompliant": true,
+      "isChildDirected": false,
+      "usesPersonalInfo": false,
+      "containsAds": false
+    }
+  }
+}

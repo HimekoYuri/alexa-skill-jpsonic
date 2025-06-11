@@ -1,0 +1,16 @@
+{
+  "name": "jpsonic-alexa-skill",
+  "version": "1.0.0",
+  "description": "JPsonicストリーミングサーバーに接続するAlexaスキル",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ask-sdk-core": "^2.12.1",
+    "ask-sdk-model": "^1.38.1",
+    "axios": "^0.27.2"
+  }
+}

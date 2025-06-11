@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'JPsonic Alexa Skill Lambda Function with Dependencies'
+
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Default: jpsonic-alexa-skill
+    Description: Lambda関数の名前
+
+  LambdaRuntime:
+    Type: String
+    Default: nodejs16.x
+    Description: Lambda関数のランタイム
+    AllowedValues:
+      - nodejs14.x
+      - nodejs16.x
+      - nodejs18.x
+
+  S3Bucket:
+    Type: String
+    Description: Lambda関数のコードを格納するS3バケット
+
+  S3Key:
+    Type: String
+    Default: jpsonic-alexa-skill/function.zip
+    Description: Lambda関数のコードを格納するS3オブジェクトキー
+
+Resources:
+  AlexaSkillIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+
+  JPsonicAlexaSkillFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref LambdaFunctionName
+      Handler: index.handler
+      Role: !GetAtt AlexaSkillIAMRole.Arn
+      Runtime: !Ref LambdaRuntime
+      Timeout: 10
+      MemorySize: 128
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3Key
+
+  AlexaSkillPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt JPsonicAlexaSkillFunction.Arn
+      Principal: alexa-appkit.amazon.com
+      EventSourceToken: amzn1.ask.skill.XXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+Outputs:
+  LambdaFunctionArn:
+    Description: Lambda関数のARN
+    Value: !GetAtt JPsonicAlexaSkillFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionArn"
+
+  LambdaFunctionName:
+    Description: Lambda関数の名前
+    Value: !Ref JPsonicAlexaSkillFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionName"

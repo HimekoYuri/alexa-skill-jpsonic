@@ -1,0 +1,49 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "jpソニック",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "PlayRandomAlbumIntent",
+          "slots": [],
+          "samples": [
+            "ランダムアルバムを再生",
+            "ランダムアルバムを再生して",
+            "何か音楽をかけて",
+            "適当に音楽をかけて",
+            "おまかせ再生"
+          ]
+        },
+        {
+          "name": "SearchArtistIntent",
+          "slots": [
+            {
+              "name": "artist",
+              "type": "AMAZON.MusicGroup"
+            }
+          ],
+          "samples": [
+            "{artist}を検索",
+            "{artist}を探して",
+            "{artist}の曲を探して",
+            "アーティスト{artist}を検索",
+            "{artist}について教えて"
+          ]
+        }
+      ],
+      "types": []
+    }
+  }
+}
