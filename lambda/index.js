@@ -2,12 +2,11 @@
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
 
-// JPsonicサーバーの設定
+// JPsonicサーバーの設定（環境変数から取得）
 const JPSONIC_CONFIG = {
-  // 実際の環境に合わせて変更してください
-  baseUrl: 'http://your-jpsonic-server:4040',
-  username: 'your-username',
-  password: 'your-password'
+  baseUrl: process.env.JPSONIC_BASE_URL || 'https://your-jpsonic-server:4040',
+  username: process.env.JPSONIC_USERNAME || '',
+  password: process.env.JPSONIC_PASSWORD || ''
 };
 
 // JPsonicへの認証とAPIリクエスト用のヘルパー関数

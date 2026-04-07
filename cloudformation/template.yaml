@@ -9,12 +9,27 @@ Parameters:
 
   LambdaRuntime:
     Type: String
-    Default: nodejs16.x
+    Default: nodejs20.x
     Description: Lambda関数のランタイム
     AllowedValues:
-      - nodejs14.x
-      - nodejs16.x
       - nodejs18.x
+      - nodejs20.x
+      - nodejs22.x
+
+  JPsonicBaseUrl:
+    Type: String
+    Description: JPsonicサーバーのベースURL（HTTPS推奨）
+    NoEcho: true
+
+  JPsonicUsername:
+    Type: String
+    Description: JPsonicサーバーのユーザー名
+    NoEcho: true
+
+  JPsonicPassword:
+    Type: String
+    Description: JPsonicサーバーのパスワード
+    NoEcho: true
 
 Resources:
   AlexaSkillIAMRole:
@@ -40,18 +55,22 @@ Resources:
       Runtime: !Ref LambdaRuntime
       Timeout: 10
       MemorySize: 128
+      Environment:
+        Variables:
+          JPSONIC_BASE_URL: !Ref JPsonicBaseUrl
+          JPSONIC_USERNAME: !Ref JPsonicUsername
+          JPSONIC_PASSWORD: !Ref JPsonicPassword
       Code:
         ZipFile: |
           // JPsonic Alexa Skill
           const Alexa = require('ask-sdk-core');
           const axios = require('axios');
 
-          // JPsonicサーバーの設定
+          // JPsonicサーバーの設定（環境変数から取得）
           const JPSONIC_CONFIG = {
-            // 実際の環境に合わせて変更してください
-            baseUrl: 'http://your-jpsonic-server:4040',
-            username: 'your-username',
-            password: 'your-password'
+            baseUrl: process.env.JPSONIC_BASE_URL || 'https://your-jpsonic-server:4040',
+            username: process.env.JPSONIC_USERNAME || '',
+            password: process.env.JPSONIC_PASSWORD || ''
           };
 
           // JPsonicへの認証とAPIリクエスト用のヘルパー関数
