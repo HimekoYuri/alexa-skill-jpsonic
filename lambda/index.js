@@ -1,6 +1,11 @@
 // JPsonic Alexa Skill
 const Alexa = require('ask-sdk-core');
 const axios = require('axios');
+const crypto = require('crypto');
+
+// Subsonic API バージョン / クライアント識別子
+const API_VERSION = '1.13.0';
+const CLIENT_NAME = 'AlexaSkill';
 
 // JPsonicサーバーの設定（環境変数から取得）
 const JPSONIC_CONFIG = {
@@ -9,6 +14,32 @@ const JPSONIC_CONFIG = {
   password: process.env.JPSONIC_PASSWORD || ''
 };
 
+// Subsonic API の認証パラメータを生成する。
+//
+// 平文パスワードを p= で送る旧方式は、URLがサーバーのアクセスログ・中間
+// プロキシ・Alexa側のログに残るためパスワードが恒久的に漏れる。API 1.13.0
+// 以降がサポートするトークン認証 (t = md5(password + salt), s = salt) を
+// 使い、リクエストごとにソルトを変えて平文を送らないようにする。
+//
+// 注: md5 は Subsonic API 仕様で固定されており選択の余地がない。ソルトが
+// 毎回変わるためリプレイと総当たりの実用性は下がるが、通信路の秘匿は
+// HTTPS に依存する（JPSONIC_BASE_URL は必ず https を指定すること）。
+function buildAuthParams() {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const token = crypto
+    .createHash('md5')
+    .update(JPSONIC_CONFIG.password + salt)
+    .digest('hex');
+
+  return {
+    u: JPSONIC_CONFIG.username,
+    t: token,
+    s: salt,
+    v: API_VERSION,
+    c: CLIENT_NAME
+  };
+}
+
 // JPsonicへの認証とAPIリクエスト用のヘルパー関数
 const jpsonicApi = {
   // 認証トークンを取得
@@ -16,14 +47,11 @@ const jpsonicApi = {
     try {
       const response = await axios.get(`${JPSONIC_CONFIG.baseUrl}/rest/ping.view`, {
         params: {
-          u: JPSONIC_CONFIG.username,
-          p: JPSONIC_CONFIG.password,
-          v: '1.13.0',
-          c: 'AlexaSkill',
+          ...buildAuthParams(),
           f: 'json'
         }
       });
-      
+
       if (response.data['subsonic-response'].status === 'ok') {
         return true;
       }
@@ -39,10 +67,7 @@ const jpsonicApi = {
     try {
       const response = await axios.get(`${JPSONIC_CONFIG.baseUrl}/rest/getAlbumList2.view`, {
         params: {
-          u: JPSONIC_CONFIG.username,
-          p: JPSONIC_CONFIG.password,
-          v: '1.13.0',
-          c: 'AlexaSkill',
+          ...buildAuthParams(),
           f: 'json',
           type: 'random',
           size: limit
@@ -61,10 +86,7 @@ const jpsonicApi = {
     try {
       const response = await axios.get(`${JPSONIC_CONFIG.baseUrl}/rest/getArtists.view`, {
         params: {
-          u: JPSONIC_CONFIG.username,
-          p: JPSONIC_CONFIG.password,
-          v: '1.13.0',
-          c: 'AlexaSkill',
+          ...buildAuthParams(),
           f: 'json'
         }
       });
@@ -81,10 +103,7 @@ const jpsonicApi = {
     try {
       const response = await axios.get(`${JPSONIC_CONFIG.baseUrl}/rest/getArtist.view`, {
         params: {
-          u: JPSONIC_CONFIG.username,
-          p: JPSONIC_CONFIG.password,
-          v: '1.13.0',
-          c: 'AlexaSkill',
+          ...buildAuthParams(),
           f: 'json',
           id: artistId
         }
@@ -98,8 +117,17 @@ const jpsonicApi = {
   },
   
   // 曲の再生URLを取得
+  //
+  // このURLはAlexaデバイスへ返され再生に使われるため、平文パスワードを
+  // 載せてはいけない。トークン認証のパラメータを使い、値は URLSearchParams
+  // でエスケープする（songId をそのまま連結するとパラメータ注入になる）。
   getStreamUrl(songId) {
-    return `${JPSONIC_CONFIG.baseUrl}/rest/stream.view?id=${songId}&u=${JPSONIC_CONFIG.username}&p=${JPSONIC_CONFIG.password}&v=1.13.0&c=AlexaSkill`;
+    const params = new URLSearchParams({
+      ...buildAuthParams(),
+      id: songId
+    });
+
+    return `${JPSONIC_CONFIG.baseUrl}/rest/stream.view?${params.toString()}`;
   }
 };
 
